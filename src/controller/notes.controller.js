@@ -1,4 +1,7 @@
 const Notes = require("../models/notes.models");
+const {notesValidation} =  require("../validation/post.validation")
+const { checkSchema, validationResult } = require('express-validator');
+
 
 const getNotes = async (req, res) => {
   try {
@@ -21,11 +24,31 @@ const getNote = async (req, res) => {
   }
 };
 
+// const createNotes =  async (req, res) => {
+//   try {
+//     const { title, description } = req.body;
+//     const newNote = await Notes.create({ title, description });
+//     if (!newNote) throw new err("Error creating new notes");
+//     res.status(201).json(newNote);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ msg: "Error posting the data", error: err.message });
+//   }
+// };
+
+
 const createNotes = async (req, res) => {
   try {
+    const result = validationResult(req);
+    if(!result.isEmpty())
+    return res.status(400).send(result.array());
+
     const { title, description } = req.body;
     const newNote = await Notes.create({ title, description });
-    if (!newNote) throw new err("Error creating new notes");
+    if (!newNote) {
+      throw new Error("Error creating new notes");
+    }
+
     res.status(201).json(newNote);
   } catch (err) {
     console.error(err);
