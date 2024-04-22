@@ -24,18 +24,6 @@ const getNote = async (req, res) => {
   }
 };
 
-// const createNotes =  async (req, res) => {
-//   try {
-//     const { title, description } = req.body;
-//     const newNote = await Notes.create({ title, description });
-//     if (!newNote) throw new err("Error creating new notes");
-//     res.status(201).json(newNote);
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ msg: "Error posting the data", error: err.message });
-//   }
-// };
-
 
 const createNotes = async (req, res) => {
   try {
