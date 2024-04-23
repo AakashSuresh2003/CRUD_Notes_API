@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const {notesValidation} =  require("../validation/post.validation")
-const { checkSchema } = require('express-validator');
+const { notesValidation } = require("../validation/post.validation");
+const { checkSchema } = require("express-validator");
+const authMiddleware = require("../middleware/authMiddleware");
 
 const {
   createNotes,
@@ -11,9 +12,11 @@ const {
   deleteNote,
 } = require("../controller/notes.controller");
 
-router.get("/", getNotes); // Route for
-router.get("/:id", getNote); // Route for
-router.post("/", checkSchema(notesValidation), createNotes); // Route for creating notes
+router.use(authMiddleware);
+
+router.get("/", getNotes);
+router.get("/:id", getNote);
+router.post("/", checkSchema(notesValidation), createNotes);
 router.put("/:id", updateNote);
 router.delete("/:id", deleteNote);
 
