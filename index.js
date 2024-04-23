@@ -18,8 +18,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/v1/notes", notesRoute);
-app.use("/api/user",authRouter);
-
+app.use("/api/user", authRouter);
 
 app.listen(3000, (req, res) => {
   console.log("Server listening on Port 3000");
