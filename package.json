@@ -10,7 +10,16 @@
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration",
     "start:dev": "nodemon index.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "docker:build": "docker build -t crud-notes-api .",
+    "docker:build:dev": "docker build -f Dockerfile.dev -t crud-notes-api:dev .",
+    "docker:run": "docker run -p 3000:3000 --env-file .env crud-notes-api",
+    "docker:run:dev": "docker run -p 3000:3000 -p 9229:9229 --env-file .env -v $(pwd):/app crud-notes-api:dev",
+    "compose:up": "docker compose up -d",
+    "compose:down": "docker compose down",
+    "compose:dev": "docker compose -f docker-compose.dev.yml up -d",
+    "compose:logs": "docker compose logs -f",
+    "compose:restart": "docker compose restart notes-api"
   },
   "keywords": [],
   "author": "",

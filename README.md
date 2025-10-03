@@ -1,27 +1,66 @@
 # CRUD Notes API
 
-This project is a comprehensive API for managing notes with robust authentication and testing. It provides secure endpoints for creating, retrieving, updating, and deleting notes, along with user authentication and registration functionalities.
+A robust and secure RESTful API for managing notes with user authentication, built with Node.js, Express, and MongoDB.
 
-## ✨ Features
+## 🚀 Features
 
-- **User Registration**: Secure user account creation with password hashing
-- **User Authentication**: JWT-based login/logout system with secure cookies
-- **User Session Management**: Token validation and user refetching capabilities
-- **Note Management**: Full CRUD operations for notes with user isolation
-- **Input Validation**: Comprehensive request validation and sanitization
-- **Security**: Password hashing, JWT tokens, user data protection
-- **Error Handling**: Robust error handling with proper HTTP status codes
-- **Testing**: Comprehensive test suite with 81+ tests covering all functionality
+- **User Authentication**: Secure registration and login with JWT tokens
+- **CRUD Operations**: Create, read, update, and delete notes
+- **User Isolation**: Users can only access their own notes
+- **Input Validation**: Comprehensive validation and sanitization
+- **Error Handling**: Robust error handling with meaningful messages
+- **Security**: Password hashing, secure cookies, and protection against common vulnerabilities
+- **Testing**: Comprehensive test suite with 106+ tests and 90%+ coverage
+- **Docker Support**: Full containerization with development and production environments
 
-## 🛠️ Technologies Used
+## � Quick Start with Docker
 
-- **Backend**: Node.js, Express.js
-- **Database**: MongoDB with Mongoose ODM
-- **Authentication**: JSON Web Tokens (JWT)
-- **Security**: Bcrypt for password hashing
-- **Validation**: Express Validator for request validation
-- **Testing**: Jest, Supertest, MongoDB Memory Server
-- **Development**: Nodemon for development server
+### Prerequisites
+- Docker Engine 20.10+
+- Docker Compose 2.0+
+
+### Production Deployment
+```bash
+# Clone the repository
+git clone https://github.com/AakashSuresh2003/CRUD_Notes_API.git
+cd CRUD_Notes_API
+
+# Set up environment
+cp .env.example .env
+# Edit .env with your production values
+
+# Start the application
+./docker-run.sh start
+
+# Check status
+./docker-run.sh status
+```
+
+### Development Environment
+```bash
+# Start development environment with hot reload
+./docker-run.sh start dev
+
+# Run tests
+./docker-run.sh test dev
+
+# View logs
+./docker-run.sh logs
+```
+
+### Manual Docker Commands
+```bash
+# Build and run production
+docker compose up -d
+
+# Build and run development
+docker compose -f docker-compose.dev.yml up -d
+
+# Stop services
+docker compose down
+```
+
+**For complete Docker documentation, see [DOCKER.md](./DOCKER.md)**
 
 ## 📦 Installation
 

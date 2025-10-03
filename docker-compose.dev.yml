@@ -1,0 +1,53 @@
+services:
+  # MongoDB Database for Development
+  mongodb-dev:
+    image: mongo:7.0
+    container_name: notes-mongodb-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: notes_dev
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_dev_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - notes-dev-network
+
+  # Notes API Application for Development
+  notes-api-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: notes-api-dev
+    restart: unless-stopped
+    env_file:
+      - .env.development
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      MONGODB_URI: mongodb://admin:password123@mongodb-dev:27017/notes_dev?authSource=admin
+      JWT_SECRET: dev-jwt-secret-key-12345
+      COOKIE_SECRET: dev-cookie-secret-key-12345
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Debug port
+    depends_on:
+      - mongodb-dev
+    networks:
+      - notes-dev-network
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./logs:/app/logs
+    command: npm run start:dev
+
+volumes:
+  mongodb_dev_data:
+    driver: local
+
+networks:
+  notes-dev-network:
+    driver: bridge
