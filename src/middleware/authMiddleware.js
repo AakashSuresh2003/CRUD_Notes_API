@@ -3,21 +3,22 @@ const jwt = require("jsonwebtoken");
 const authMiddleware = async (req, res, next) => {
   try {
     const token = req.cookies.token;
-    if (token) {
-      jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-        if (err) {
-          res.status(401);
-          throw new Error("User is unauthorized");
-        }
-        req.user = decoded; 
-        next();
-      });
-    } else {
-      res.status(401);
-      throw new Error("User is not authorized or token is missing");
+    
+    if (!token) {
+      return res.status(401).json({ error: "User is not authorized or token is missing" });
     }
+    
+    jwt.verify(token, process.env.JWT_SECRET || 'test_secret', (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ error: 'Invalid or expired token' });
+      }
+      
+      req.user = decoded; 
+      next();
+    });
 
   } catch (error) {
+    console.error("Auth middleware error:", error);
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 };

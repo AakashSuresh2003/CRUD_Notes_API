@@ -5,52 +5,89 @@ const bcrypt = require("bcrypt");
 const createUserController = async (req, res) => {
   try {
     const { username, fullName, email, password } = req.body;
+    
+    // Input validation
+    if (!username || !fullName || !email || !password) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+    
     const existingUser = await User.findOne({ $or: [{ username }, { email }] });
-    if (existingUser)
-      throw new Error("User with same username Or Email Exists");
-    const salt = await bcrypt.genSaltSync(10);
-    const hashedPassword = await bcrypt.hashSync(password, salt);
+    if (existingUser) {
+      return res.status(409).json({ error: "User with same username or email already exists" });
+    }
+    
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
     const newUser = new User({ ...req.body, password: hashedPassword });
-    const savedUser = newUser.save();
-    res.status(200).json({ Message: "Created new User" });
+    await newUser.save();
+    
+    res.status(201).json({ message: "Created new user successfully" });
   } catch (err) {
-    res.status(500).json("Error creating a new user");
+    console.error("Error creating user:", err);
+    res.status(500).json({ error: "Error creating a new user" });
   }
 };
 
 const loginController = async (req, res) => {
   try {
     const { username, email, password } = req.body;
+    
+    // Input validation
+    if ((!username && !email) || !password) {
+      return res.status(400).json({ error: "Username/email and password are required" });
+    }
+    
     const user = await User.findOne({ $or: [{ username }, { email }] });
-    if (!user) throw new Error("User Not Found");
-    const matchedUser = await bcrypt.compareSync(password, user.password);
-    if (!matchedUser) throw new Error("UnAuthorised User");
+    if (!user) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    
+    const matchedUser = await bcrypt.compare(password, user.password);
+    if (!matchedUser) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    
     const { password: _, ...data } = user._doc;
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
-    res.cookie("token", token).status(200).json(data);
-    console.log(req.headers);
+    
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    }).status(200).json(data);
   } catch (err) {
-    res.status(500).json("Internal Server Error");
+    console.error("Login error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 const logoutController = async (req, res) => {
   try {
     res
-      .clearCookie("token", { sameSite: true, secure: true })
+      .clearCookie("token", { 
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict' 
+      })
       .status(200)
-      .json("User logged out successfully");
+      .json({ message: "User logged out successfully" });
   } catch (err) {
-    res.status(500).json("Internal Server Error");
+    console.error("Logout error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 const refetchUserController = async (req, res) => {
   try {
     const token = req.cookies.token;
-    console.log(token);
+    
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+    
     jwt.verify(token, process.env.JWT_SECRET, {}, async (err, data) => {
       if (err) {
         console.error("JWT Verification Error:", err.message);
@@ -62,12 +99,12 @@ const refetchUserController = async (req, res) => {
           return res.status(500).json({ error: "JWT verification failed" });
         }
       }
+      
       try {
         const id = data.id;
-        console.log(id);
-        const user = await User.findById(id);
+        const user = await User.findById(id).select('-password');
         if (!user) {
-          return res.status(401).json({ error: "User not logged in" });
+          return res.status(404).json({ error: "User not found" });
         }
         res.status(200).json(user);
       } catch (err) {

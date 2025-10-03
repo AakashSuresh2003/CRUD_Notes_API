@@ -5,47 +5,74 @@ const { validationResult } = require("express-validator");
 const getNotes = async (req, res) => {
   try {
     const id = req.user.id;
-    console.log("\nRequest ID: " + id);
+    
+    if (!id) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+    
     const data = await Notes.find({ user_id: id });
-    if (!data) throw new err("No notes found");
     res.status(200).json(data);
   } catch (err) {
-    res.status(500).json({ msg: "Error fetching the data" });
+    console.error("Error fetching notes:", err);
+    res.status(500).json({ error: "Error fetching the data" });
   }
 };
 
 const getNote = async (req, res) => {
   try {
     const user_id = req.user.id;
-    if (!user_id) throw new Error("User is not logged in");
+    if (!user_id) {
+      return res.status(401).json({ error: "User is not logged in" });
+    }
 
     const { id } = req.params;
+    
+    if (!id) {
+      return res.status(400).json({ error: "Note ID is required" });
+    }
 
     const data = await Notes.findOne({ _id: id, user_id: user_id });
 
-    if (!data) throw new err("No notes found");
+    if (!data) {
+      return res.status(404).json({ error: "Note not found" });
+    }
+    
     res.status(200).json(data);
   } catch (err) {
-    res.status(500).json({ msg: "Error fetching the data" });
+    console.error("Error fetching note:", err);
+    res.status(500).json({ error: "Error fetching the data" });
   }
 };
 
 const createNotes = async (req, res) => {
   try {
     const id = req.user.id;
-    console.log(id);
+    
+    if (!id) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+    
     const result = validationResult(req);
-    if (!result.isEmpty()) return res.status(400).send(result.array());
+    if (!result.isEmpty()) {
+      return res.status(400).json({ errors: result.array() });
+    }
 
     const { title, description } = req.body;
-    const newNote = await Notes.create({ title, description, user_id: id });
-    if (!newNote) {
-      throw new Error("Error creating new notes");
+    
+    if (!title || !description) {
+      return res.status(400).json({ error: "Title and description are required" });
     }
+    
+    const newNote = await Notes.create({ title, description, user_id: id });
+    
+    if (!newNote) {
+      return res.status(500).json({ error: "Error creating new note" });
+    }
+    
     res.status(201).json(newNote);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Error posting the data", error: err.message });
+    console.error("Error creating note:", err);
+    res.status(500).json({ error: "Error posting the data", details: err.message });
   }
 };
 
